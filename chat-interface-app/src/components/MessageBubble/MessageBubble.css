@@ -1,0 +1,55 @@
+.messageRow {
+    display: flex;
+    margin: 0.5rem 0;
+  }
+  
+  /* Assistant messages appear on the left */
+  .assistantBubble {
+    background-color: #ffffff;
+    color: #333;
+    align-self: flex-start;
+  }
+  
+  /* User messages appear on the right */
+  .userRow {
+    justify-content: flex-end;
+  }
+  
+  /* Bubble styling */
+  .userBubble {
+    background-color: #4285f4; /* Example blue color for user bubbles */
+    color: #fff;
+    align-self: flex-end;
+  }
+  
+  .assistantBubble,
+  .userBubble {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    max-width: 60%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Voice message label */
+  .voiceMessageLabel {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    opacity: 0.8;
+  }
+  
+  .micIcon {
+    margin-right: 0.25rem;
+  }
+  
+  /* Timestamp styling */
+  .timestamp {
+    font-size: 0.7rem;
+    color: #999;
+    align-self: flex-end;
+    margin-top: 0.25rem;
+  }
+  

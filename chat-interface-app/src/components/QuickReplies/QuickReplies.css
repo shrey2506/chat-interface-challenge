@@ -1,0 +1,22 @@
+.quickRepliesContainer {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1rem 0.5rem;
+    background-color: #ffffff;
+    flex-wrap: wrap;
+  }
+  
+  .replyButton {
+    padding: 0.5rem 1rem;
+    background-color: #f1f3f4;
+    color: #333;
+    border: none;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  
+  .replyButton:hover {
+    background-color: #e2e2e2;
+  }
+  
