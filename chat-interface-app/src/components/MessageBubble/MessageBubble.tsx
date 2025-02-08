@@ -1,35 +1,34 @@
+// src/components/MessageBubble/MessageBubble.tsx
+
 import React from 'react';
-import './MessageBubble.css';
-import { FiMic } from 'react-icons/fi'; // For a voice icon (optional)
+import { Message } from '../../services/ChatService';
+import { FiMic } from 'react-icons/fi';
 
-export type SenderType = 'user' | 'assistant';
+const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
+  const isUser = message.sender === 'user';
 
-export interface MessageBubbleProps {
-  sender: SenderType;
-  text: string;
-  timestamp: string; // e.g., "10:31 AM"
-  isVoiceMessage?: boolean;
-}
-
-const MessageBubble: React.FC<MessageBubbleProps> = ({
-  sender,
-  text,
-  timestamp,
-  isVoiceMessage,
-}) => {
-  const bubbleClass =
-    sender === 'user' ? "userBubble" : "assistantBubble";
+  const bubbleStyle = {
+    alignSelf: isUser ? 'flex-end' : 'flex-start',
+    backgroundColor: isUser ? '#4285f4' : '#fff',
+    color: isUser ? '#fff' : '#333',
+    borderRadius: 8,
+    padding: '0.75rem',
+    margin: '0.5rem 0',
+    maxWidth: '60%',
+  };
 
   return (
-    <div className={`messageRow ${sender === 'user' && "userRow"}`}>
-      <div className={bubbleClass}>
-        {isVoiceMessage && (
-          <div className="voiceMessageLabel">
-            <FiMic /> Voice message
+    <div style={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
+      <div style={bubbleStyle}>
+        {message.isVoiceMessage && (
+          <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.8rem', marginBottom: '0.25rem' }}>
+            <FiMic style={{ marginRight: 4 }} /> Voice message
           </div>
         )}
-        <div className="messageText">{text}</div>
-        <div className="timestamp">{timestamp}</div>
+        <div>{message.text}</div>
+        <div style={{ fontSize: '0.7rem', color: isUser ? '#eee' : '#999', marginTop: 4, textAlign: 'right' }}>
+          {message.timestamp}
+        </div>
       </div>
     </div>
   );

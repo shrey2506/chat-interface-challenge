@@ -1,11 +1,15 @@
 import React from "react";
 import './App.css';
 import ChatApp from './components/ChatApp';
+import { ChatSettingsProvider } from "./context/ChatSettingContext";
 
 function App() {
   return (
     <div className="App">
-      <ChatApp />
+      <ChatSettingsProvider>
+         <ChatApp />
+      </ChatSettingsProvider>
+     
     </div>
   );
 }

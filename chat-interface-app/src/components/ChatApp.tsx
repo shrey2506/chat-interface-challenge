@@ -1,77 +1,100 @@
-import React, { useState } from 'react';
+// src/components/ChatApp/ChatApp.tsx
+
+import React, { useState, useEffect } from 'react';
 import ChatHeader from './ChatHeader/ChatHeader';
 import ChatWindow from './ChatWindow/ChatWindow';
 import QuickReplies from './QuickReplies/QuickReplies';
 import ChatInput from './ChatInput/ChatInput';
-import { MessageBubbleProps } from './MessageBubble/MessageBubble';
+import SettingsPanel from './SettingsPanel/SettingsPanel';
+import { useChatSettings } from '../context/ChatSettingContext';
+import { Message, fetchMessages, sendMessage } from '../services/ChatService';
 
-
-const initialMessages: MessageBubbleProps[] = [
-  {
-    sender: 'assistant',
-    text: 'Hello! How can I assist you today?',
-    timestamp: '10:30 AM',
-  },
-  {
-    sender: 'assistant',
-    text: 'Here are some React resources:',
-    timestamp: '10:31 AM',
-  },
-  {
-    sender: 'assistant',
-    text: '• React Documentation\n• Hooks Guide\n• Performance Tips',
-    timestamp: '10:31 AM',
-  },
-  {
-    sender: 'user',
-    text: "Thanks! That's helpful.",
-    timestamp: '10:32 AM',
-  },
-];
+const POLL_INTERVAL = 2000; // 2 seconds for demonstration
 
 const ChatApp: React.FC = () => {
-  const [messages, setMessages] = useState<MessageBubbleProps[]>(initialMessages);
+  const { theme } = useChatSettings(); 
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
 
-  const handleSendMessage = (newMessage: string) => {
-    const now = new Date();
-    const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  useEffect(() => {
+    // Initial load
+    loadMessages();
+    
+    // Polling for real-time updates
+    const intervalId = setInterval(() => {
+      loadMessages(true); // silent load
+    }, POLL_INTERVAL);
 
-    setMessages((prev) => [
-      ...prev,
-      { sender: 'user', text: newMessage, timestamp },
-    ]);
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line
+  }, []);
 
-    // (Optional) Simulate assistant reply after a short delay
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: 'assistant',
-          text: "I've received your message!",
-          timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    }, 2000);
+  async function loadMessages(isSilent?: boolean) {
+    if (!isSilent) setLoading(true);
+    try {
+      const data = await fetchMessages();
+      setMessages(data);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch messages.');
+    } finally {
+      if (!isSilent) setLoading(false);
+    }
+  }
+
+  // Handles user-sent messages
+  const handleSendMessage = async (text: string, isVoiceMessage?: boolean) => {
+    setError('');
+    const newMessage: Omit<Message, 'id' | 'timestamp'> = {
+      sender: 'user',
+      text,
+      isVoiceMessage,
+    };
+    try {
+      // Optimistically update local state
+      const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages((prev) => [...prev, { ...newMessage, timestamp }]);
+      
+      // Send to server
+      await sendMessage(newMessage);
+
+      // Optionally, the server might respond with an assistant message
+      // after a short delay. Or we rely on polling to fetch new messages.
+    } catch (err) {
+      console.error(err);
+      setError('Failed to send message.');
+    }
   };
 
-  const quickReplies = ['Tell me about hooks', 'Performance tips', 'State management'];
-
-  const handleReplySelect = (reply: string) => {
-    handleSendMessage(reply);
-  };
+  // Quick reply suggestions
+  const quickReplies = ['What are React hooks?', 'Show me performance tips', 'Discuss state management'];
 
   return (
-    <div className="chatContainer">
+    <div
+      data-theme={theme}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        height: '100vh',
+        maxWidth: 600,
+        margin: '0 auto',
+        backgroundColor: theme === 'light' ? '#f7f7f7' : '#222',
+        color: theme === 'light' ? '#000' : '#eee',
+      }}
+    >
       <ChatHeader
         title="AI Chat Assistant"
         subtitle="Speech recognition enabled"
+        onSettingsClick={() => setShowSettings(true)}
       />
-      <ChatWindow messages={messages} />
-      <QuickReplies replies={quickReplies} onReplySelect={handleReplySelect} />
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        onVoiceClick={() => console.log('Voice input clicked')}
-      />
+      <ChatWindow messages={messages} loading={loading} error={error} />
+      <QuickReplies replies={quickReplies} onReplySelect={handleSendMessage} />
+      <ChatInput onSendMessage={handleSendMessage} />
+
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
     </div>
   );
 };

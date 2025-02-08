@@ -1,35 +1,50 @@
-import React, { useEffect, useRef } from 'react';
-import './ChatWindow.css';
-import MessageBubble, { MessageBubbleProps } from '../MessageBubble/MessageBubble';
+import React, { useRef, useEffect } from 'react';
+import { Message } from '../../services/ChatService';
+import MessageBubble from '../MessageBubble/MessageBubble';
 
 interface ChatWindowProps {
-  messages: MessageBubbleProps[];
+  messages: Message[];
+  loading: boolean;
+  error: string;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, loading, error }) => {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll to bottom whenever messages change
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
+  // Display loading / error states if needed
+  if (loading) {
+    return <div style={{ padding: '1rem', textAlign: 'center' }}>Loading messages...</div>;
+  }
+
+  if (error) {
+    return <div style={{ color: 'red', padding: '1rem', textAlign: 'center' }}>{error}</div>;
+  }
+
   return (
-    <div className="chatWindow">
+    <div style={styles.container}>
       {messages.map((msg, idx) => (
-        <MessageBubble
-          key={idx}
-          sender={msg.sender}
-          text={msg.text}
-          timestamp={msg.timestamp}
-          isVoiceMessage={msg.isVoiceMessage}
-        />
+        <MessageBubble key={idx} message={msg} />
       ))}
-      <div ref={chatEndRef} />
+      <div ref={scrollRef} />
     </div>
   );
+};
+
+const styles = {
+  container: {
+    flex: 1,
+    overflowY: 'auto' as 'auto',
+    padding: '1rem',
+    backgroundColor: '#f7f7f7',
+    display: 'flex',
+    flexDirection: 'column' as 'column',
+  },
 };
 
 export default ChatWindow;
